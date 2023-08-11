@@ -4,6 +4,12 @@
 from api.v1.views import app_views
 from flask import abort, jsonify, request
 from models.user import User
+from os import getenv
+
+
+if getenv("AUTH_TYPE") == 'session_auth':
+    from api.v1.auth.session_auth import SessionAuth
+    auth = SessionAuth()
 
 
 @app_views.route('/users', methods=['GET'], strict_slashes=False)
@@ -27,15 +33,14 @@ def view_one_user(user_id: str = None) -> str:
     """
     if user_id is None:
         abort(404)
-    if user_id == "me":
-        if request.current_user is None:
+
+    if user_id == 'me':
+        if not request.current_user:
             abort(404)
-        user = request.current_user
-        return jsonify(user.to_json())
+        return jsonify(request.current_user.to_json())
+
     user = User.get(user_id)
     if user is None:
-        abort(404)
-    if request.current_user is None:
         abort(404)
     return jsonify(user.to_json())
 
@@ -93,12 +98,12 @@ def create_user() -> str:
             return jsonify(user.to_json()), 201
         except Exception as e:
             error_msg = "Can't create User: {}".format(e)
-    return jsonify({'error': error_msg}), 400
+                return jsonify({'error': error_msg}), 400
 
 
 @app_views.route('/users/<user_id>', methods=['PUT'], strict_slashes=False)
 def update_user(user_id: str = None) -> str:
-  """ PUT /api/v1/users/:id
+    """ PUT /api/v1/users/:id
     Path parameter:
       - User ID
     JSON body:
