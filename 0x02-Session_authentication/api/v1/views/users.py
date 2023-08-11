@@ -114,6 +114,7 @@ def update_user(user_id: str = None) -> str:
       - 404 if the User ID doesn't exist
       - 400 if can't update the User
     """
+    
     if user_id is None:
         abort(404)
     user = User.get(user_id)
